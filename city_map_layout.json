@@ -1,0 +1,36 @@
+{
+  "land": {
+    "image": "CityAsset/Land/LandWithNothing.png",
+    "width": 1156,
+    "height": 772
+  },
+  "buildings": [
+    {
+      "id": "building1",
+      "x": 272,
+      "y": 177,
+      "width": 233,
+      "height": 350,
+      "zIndex": 1,
+      "image": "CityAsset/Building/ChordGym-open.png"
+    },
+    {
+      "id": "building2",
+      "x": 353,
+      "y": 181,
+      "width": 285,
+      "height": 428,
+      "zIndex": 2,
+      "image": "CityAsset/Building/GrooveLounge-open.png"
+    },
+    {
+      "id": "building3",
+      "x": 484,
+      "y": 284,
+      "width": 233,
+      "height": 350,
+      "zIndex": 3,
+      "image": "CityAsset/Building/ScaleShop-open.png"
+    }
+  ]
+}
