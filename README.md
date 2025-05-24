@@ -15,8 +15,8 @@ This project is actively under development. We have successfully completed the *
 - **Interactive City Map**: Pixel-perfect hover detection with beautiful lighting effects
 - **Card Collection Game (Groove Lounge)**: Complete loot box system with:
   - Multiple box types (Conqueror, Maestro, Virtuoso)
-  - 200+ unique music-themed cards
-  - Rarity system (Common, Rare, Epic, Legendary)
+  - 200+ unique collectible cards
+  - 9-tier rarity system (Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret, Ultra Rare, Cosmic)
   - Set completion rewards
   - Coin-based economy
   - Slot machine mechanics
@@ -81,7 +81,7 @@ TheCity/
 
 - **Pixel-Perfect Interactions**: Advanced canvas-based hit detection
 - **Beautiful Visual Effects**: Glowing hover states and smooth animations
-- **Card Rarity System**: Common, Rare, Epic, and Legendary cards
+- **Card Rarity System**: 9-tier system from Common to Cosmic rarity
 - **Economic System**: Coin-based purchasing with balanced rewards
 - **Set Collection**: Strategic gameplay through set completion bonuses
 
@@ -98,10 +98,6 @@ TheCity/
 - Reward learning progress with collectible achievements
 - Encourage exploration of different musical concepts
 - Build long-term engagement through collection mechanics
-
-## 🤝 Contributing
-
-This is an ongoing educational project. Contributions, suggestions, and feedback are welcome!
 
 ## 📝 License
 

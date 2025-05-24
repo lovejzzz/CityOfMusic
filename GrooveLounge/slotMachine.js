@@ -91,6 +91,11 @@ window.runSlotMachineAnimation = function(minValue = 700, maxValue = 1500, onCom
         playSound('slotMachine');
     }
     
+    // Helper function to set digit content with proper wrapping
+    const setDigitContent = (element, value) => {
+        element.innerHTML = `<span class="digit-inner">${value}</span>`;
+    };
+    
     // Function to rapidly flip through random numbers
     const rapidFlip = (digitElement, finalValue, duration, stopDelay) => {
         // Get the top and bottom elements
@@ -101,8 +106,8 @@ window.runSlotMachineAnimation = function(minValue = 700, maxValue = 1500, onCom
         
         // Start with random values
         let currentValue = Math.floor(Math.random() * 10);
-        top.textContent = currentValue;
-        bottom.textContent = currentValue;
+        setDigitContent(top, currentValue);
+        setDigitContent(bottom, currentValue);
         
         // Clear any existing animations
         if (digitElement.flipInterval) {
@@ -117,18 +122,18 @@ window.runSlotMachineAnimation = function(minValue = 700, maxValue = 1500, onCom
             
             if (isTopFlip) {
                 // Flip the top half
-                flipTop.textContent = currentValue;
+                setDigitContent(flipTop, currentValue);
                 flipTop.style.animation = 'flipTop 0.05s linear forwards';
                 setTimeout(() => {
-                    top.textContent = currentValue;
+                    setDigitContent(top, currentValue);
                     flipTop.style.animation = 'none';
                 }, 50);
             } else {
                 // Flip the bottom half
-                flipBottom.textContent = currentValue;
+                setDigitContent(flipBottom, currentValue);
                 flipBottom.style.animation = 'flipBottom 0.05s linear forwards';
                 setTimeout(() => {
-                    bottom.textContent = currentValue;
+                    setDigitContent(bottom, currentValue);
                     flipBottom.style.animation = 'none';
                 }, 50);
             }
@@ -144,13 +149,13 @@ window.runSlotMachineAnimation = function(minValue = 700, maxValue = 1500, onCom
             // Set final value with one last flip
             setTimeout(() => {
                 // Final top flip
-                flipTop.textContent = finalValue;
+                setDigitContent(flipTop, finalValue);
                 flipTop.style.animation = 'flipTop 0.15s ease-out forwards';
                 
                 setTimeout(() => {
-                    top.textContent = finalValue;
-                    bottom.textContent = finalValue;
-                    flipBottom.textContent = finalValue;
+                    setDigitContent(top, finalValue);
+                    setDigitContent(bottom, finalValue);
+                    setDigitContent(flipBottom, finalValue);
                     
                     // Final bottom flip
                     flipBottom.style.animation = 'flipBottom 0.15s ease-out forwards';
