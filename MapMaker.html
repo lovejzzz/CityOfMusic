@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Building Map Editor with Resize</title>
+  <style>
+    body { 
+      background: #111; 
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Courier New', monospace;
+    }
+    .main-container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .map-container {
+      position: relative;
+      width: 1156px;
+      height: 772px;
+      background: url('CityAsset/Land/LandWithNothing.png') no-repeat center center;
+      background-size: cover;
+      border: 2px solid #333;
+      margin: 0 auto;
+    }
+    
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .building {
+      position: absolute;
+      width: 320px;
+      height: 480px;
+      cursor: grab;
+      user-select: none;
+      box-sizing: border-box;
+      transition: filter 0.1s;
+      background: transparent;
+    }
+    .building img {
+      position: relative;
+      z-index: 1;
+    }
+    .building.selected img {
+      filter: drop-shadow(0 0 3px #ff0);
+    }
+    .building.selected {
+      z-index: 10000 !important;
+    }
+    .resize-handle {
+      display: none;
+    }
+    /* Layer controls like before... */
+    .layer-controls { /* ...same as previous code... */ }
+    .layer-controls { position: absolute; top: 5px; right: 5px; background: rgba(30,30,30,0.7); border-radius: 6px; padding: 3px 3px; display: flex; flex-direction: column; gap: 3px; z-index: 11000; font-size: 16px; width: fit-content; }
+    .layer-controls button { margin: 0 0 2px 0; background: #444; color: #fff; border: none; border-radius: 3px; cursor: pointer; padding: 2px 4px; width: 110px; text-align: center; }
+    .layer-controls button:hover { background: #ffa500; color: #111; }
+    .layer-controls button#sizeUp, .layer-controls button#sizeDown { width: 30px; padding: 2px 0; }
+    
+    /* Fallout-style control panel */
+    .control-panel {
+      width: 250px;
+      background-color: #2a2a2a;
+      border: 3px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .control-panel-header {
+      color: #2ec12e;
+      text-align: center;
+      font-size: 20px;
+      border-bottom: 2px solid #3a3a3a;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .control-panel button {
+      background: #3a3a3a;
+      color: #2ec12e;
+      border: 2px solid #4a4a4a;
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .control-panel button:hover {
+      background: #4a4a4a;
+      box-shadow: 0 0 10px rgba(46, 193, 46, 0.5);
+    }
+    .control-panel button#loadMapBtn {
+      border-color: #4a90e2;
+    }
+    .control-panel button#saveMapBtn {
+      border-color: #ffa500;
+    }
+    
+    /* Fallout-style notification window */
+    .fallout-notification {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #2a2a2a;
+      border: 3px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 20px;
+      width: 400px;
+      box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+      z-index: 20000;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+    }
+    .fallout-notification-header {
+      color: #2ec12e;
+      font-size: 22px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #3a3a3a;
+      padding-bottom: 10px;
+    }
+    .fallout-notification-content {
+      color: #2ec12e;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .fallout-notification-button {
+      background: #3a3a3a;
+      color: #2ec12e;
+      border: 2px solid #4a4a4a;
+      border-radius: 4px;
+      padding: 8px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .fallout-notification-button:hover {
+      background: #4a4a4a;
+      box-shadow: 0 0 10px rgba(46, 193, 46, 0.5);
+    }
+    
+    .page-title {
+      color: #2ec12e;
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-shadow: 0 0 10px rgba(46, 193, 46, 0.5);
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+    
+    .exit-button {
+      background: #3a3a3a;
+      color: #ff5555;
+      border: 2px solid #ff5555;
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+      margin-top: 20px;
+    }
+    
+    .exit-button:hover {
+      background: #4a4a4a;
+      box-shadow: 0 0 10px rgba(255, 85, 85, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-title">CITY MAKER</div>
+  <div class="main-container">
+    <div class="map-container" id="map">
+      <!-- Buildings will be loaded dynamically -->
+      <div class="layer-controls" id="layerControls" style="display:none;">
+        <button id="bringFront">Bring Forward</button>
+        <button id="sendBack">Send Backward</button>
+        <button id="sizeUp">+</button>
+        <button id="sizeDown">-</button>
+      </div>
+    </div>
+    
+    <div class="control-panel">
+      <div class="control-panel-header">CITY CONTROLS</div>
+      <input type="file" id="loadMapInput" accept=".json" style="display: none;" />
+      <button id="loadMapBtn">LOAD MAP</button>
+      <button id="saveMapBtn">SAVE MAP</button>
+      <button id="exitBtn" class="exit-button">EXIT TO CITY</button>
+    </div>
+    
+    <!-- Fallout-style notification window -->
+    <div class="fallout-notification" id="falloutNotification">
+      <div class="fallout-notification-header" id="notificationHeader">NOTIFICATION</div>
+      <div class="fallout-notification-content" id="notificationContent">Message goes here</div>
+      <button class="fallout-notification-button" id="notificationButton">OK</button>
+    </div>
+  </div>
+<script>
+  let selected = null, offsetX = 0, offsetY = 0;
+  let layerControls = document.getElementById('layerControls');
+  let topZ = 3;
+
+  // Exit button functionality
+  document.getElementById('exitBtn').addEventListener('click', function() {
+    window.location.href = 'index.html';
+  });
+
+  // Function to dynamically load buildings from the Building folder
+  function loadBuildingsFromFolder() {
+    // Define the building files we know exist
+    const knownBuildingFiles = [
+      'ChordGym-open.png',
+      'GrooveLounge-open.png',
+      'ScaleCafe-open.png',
+      'ToneStudio-open.png'
+    ];
+    
+    // First try to load from city_map_layout.json to get actual positions
+    fetch('city_map_layout.json')
+      .then(response => response.json())
+      .then(data => {
+        // Use the buildings from the JSON file
+        if (data.buildings && Array.isArray(data.buildings)) {
+          // Get the existing building IDs from the JSON
+          const existingBuildingIds = new Set();
+          const existingBuildingImages = new Set();
+          
+          data.buildings.forEach(building => {
+            existingBuildingIds.add(building.id);
+            
+            // Extract just the filename from the full path
+            const imagePath = building.image;
+            const fileName = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+            existingBuildingImages.add(fileName);
+          });
+          
+          // Load the buildings from the JSON first
+          loadBuildingsFromData(data.buildings);
+          
+          // Then add any buildings that are in the folder but not in the JSON
+          let nextId = data.buildings.length + 1;
+          let nextZIndex = Math.max(...data.buildings.map(b => b.zIndex)) + 1;
+          
+          knownBuildingFiles.forEach(fileName => {
+            if (!existingBuildingImages.has(fileName)) {
+              // This building is in the folder but not in the JSON, so add it
+              const buildingId = 'building' + nextId;
+              nextId++;
+              
+              // Create a new building with default position
+              const building = document.createElement('div');
+              building.className = 'building';
+              building.id = buildingId;
+              building.style.left = (100 + (nextId * 50)) + 'px';
+              building.style.top = '200px';
+              building.style.zIndex = nextZIndex;
+              building.style.width = '233px';
+              building.style.height = '350px';
+              
+              const img = document.createElement('img');
+              img.src = 'CityAsset/Building/' + fileName;
+              img.style.width = '100%';
+              img.style.height = '100%';
+              img.draggable = false;
+              
+              building.appendChild(img);
+              document.getElementById('map').appendChild(building);
+              
+              // Add event listeners to the new building immediately
+              building.addEventListener('mousedown', handleBuildingMouseDown);
+              building.addEventListener('click', handleBuildingClick);
+              console.log('Added event listeners to new building:', buildingId);
+              
+              // Update topZ if needed
+              if (nextZIndex > topZ) {
+                topZ = nextZIndex;
+              }
+              
+              nextZIndex++;
+            }
+          });
+        } else {
+          // Fallback to default loading if JSON doesn't have buildings
+          loadDefaultBuildings();
+        }
+      })
+      .catch(error => {
+        console.error('Error loading city map data:', error);
+        // Fallback to default loading if JSON can't be loaded
+        loadDefaultBuildings();
+      });
+  }
+  
+  // Function to load buildings from JSON data
+  function loadBuildingsFromData(buildingsData) {
+    const mapContainer = document.getElementById('map');
+    
+    // Clear any existing buildings
+    const existingBuildings = document.querySelectorAll('.building');
+    existingBuildings.forEach(building => {
+      if (building.parentNode) {
+        building.parentNode.removeChild(building);
+      }
+    });
+    
+    // Create buildings from the data
+    buildingsData.forEach((buildingData, index) => {
+      const building = document.createElement('div');
+      building.className = 'building';
+      building.id = buildingData.id || 'building' + (index + 1);
+      building.style.left = buildingData.x + 'px';
+      building.style.top = buildingData.y + 'px';
+      building.style.width = buildingData.width + 'px';
+      building.style.height = buildingData.height + 'px';
+      building.style.zIndex = buildingData.zIndex || (index + 1);
+      
+      const img = document.createElement('img');
+      img.src = buildingData.image;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.draggable = false;
+      
+      building.appendChild(img);
+      mapContainer.appendChild(building);
+      
+      // Update topZ if needed
+      if (buildingData.zIndex > topZ) {
+        topZ = buildingData.zIndex;
+      }
+    });
+    
+    // Attach event listeners after buildings are loaded
+    attachEventListeners();
+  }
+  
+  // Function to load default buildings if JSON loading fails
+  function loadDefaultBuildings() {
+    // Get all building images that end with -open.png
+    const buildingFiles = [
+      'ChordGym-open.png',
+      'GrooveLounge-open.png',
+      'ScaleCafe-open.png',
+      'ToneStudio-open.png'
+    ];
+    
+    const mapContainer = document.getElementById('map');
+    
+    // Clear any existing buildings
+    const existingBuildings = document.querySelectorAll('.building');
+    existingBuildings.forEach(building => {
+      if (building.parentNode) {
+        building.parentNode.removeChild(building);
+      }
+    });
+    
+    // Create a building element for each file
+    buildingFiles.forEach((file, index) => {
+      const buildingId = 'building' + (index + 1);
+      const position = { x: 100 + index * 150, y: 200, z: index + 1 };
+      
+      const building = document.createElement('div');
+      building.className = 'building';
+      building.id = buildingId;
+      building.style.left = position.x + 'px';
+      building.style.top = position.y + 'px';
+      building.style.zIndex = position.z;
+      building.style.width = '233px';
+      building.style.height = '350px';
+      
+      const img = document.createElement('img');
+      img.src = 'CityAsset/Building/' + file;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.draggable = false;
+      
+      building.appendChild(img);
+      mapContainer.appendChild(building);
+      
+      // Add event listeners to the new building immediately
+      building.addEventListener('mousedown', handleBuildingMouseDown);
+      building.addEventListener('click', handleBuildingClick);
+      console.log('Added event listeners to default building:', buildingId);
+      
+      // Update topZ if needed
+      if (position.z > topZ) {
+        topZ = position.z;
+      }
+    });
+    
+    // Attach event listeners after buildings are loaded
+    attachEventListeners();
+  }
+  
+  // Load buildings when the page loads
+  window.addEventListener('DOMContentLoaded', function() {
+    loadBuildingsFromFolder();
+    // attachEventListeners will be called after buildings are loaded
+  });
+
+  // Function to check if a pixel is transparent
+  function isPixelTransparent(img, x, y, width, height) {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      const pixelData = ctx.getImageData(x, y, 1, 1).data;
+      return pixelData[3] < 50; // Consider it transparent if alpha is less than 50 (out of 255)
+    } catch (error) {
+      // CORS error when opening file directly - assume pixel is not transparent
+      console.warn('Cannot access pixel data due to CORS restrictions. Assuming pixel is not transparent.');
+      return false;
+    }
+  }
+  
+  // Function to attach event listeners to buildings
+  function attachEventListeners() {
+    console.log('Attaching event listeners to buildings');
+    
+    // First remove any existing event listeners to prevent duplicates
+    document.querySelectorAll('.building').forEach(el => {
+      el.removeAttribute('onmousedown');
+      el.removeAttribute('onclick');
+      
+      // Use modern event listeners instead of inline attributes
+      el.addEventListener('mousedown', handleBuildingMouseDown);
+      el.addEventListener('click', handleBuildingClick);
+    });
+    
+    console.log('Event listeners attached to ' + document.querySelectorAll('.building').length + ' buildings');
+  }
+  
+  // Handle mousedown on buildings
+  function handleBuildingMouseDown(e) {
+    console.log('Building mousedown', this.id);
+    
+    // Ignore if clicking on resize handle
+    if (e.target.classList.contains('resize-handle')) return;
+    
+    // Check if the click is on a transparent part of the image
+    if (e.target.tagName === 'IMG') {
+      const img = e.target;
+      const rect = img.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // If pixel is transparent, don't select the building
+      if (isPixelTransparent(img, x, y, img.width, img.height)) {
+        console.log('Click on transparent pixel, ignoring');
+        return;
+      }
+    }
+    
+    // Set this building as selected
+    selected = this;
+    selected.classList.add('selected');
+    
+    // Calculate offset for dragging
+    const rect = selected.getBoundingClientRect();
+    const mapRect = document.getElementById('map').getBoundingClientRect();
+    
+    // Calculate offset relative to the map container
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    
+    console.log('Selected building', selected.id, 'offsetX:', offsetX, 'offsetY:', offsetY);
+    
+    // Show layer controls
+    showLayerControls(selected, e.clientX, e.clientY);
+    
+    // Prevent default behavior
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  // Handle click on buildings
+  function handleBuildingClick(e) {
+    console.log('Building click', this.id);
+    showLayerControls(this, e.clientX, e.clientY);
+    e.stopPropagation();
+  }
+  
+  // Event listeners are now attached by the DOMContentLoaded event handler
+  
+  // Global mousemove handler for dragging
+  document.addEventListener('mousemove', function(e) {
+    if (selected) {
+      console.log('Dragging building', selected.id);
+      
+      // Get map container
+      let map = document.getElementById('map');
+      let mapRect = map.getBoundingClientRect();
+      
+      // Calculate new position relative to the map container
+      let x = e.clientX - mapRect.left - offsetX;
+      let y = e.clientY - mapRect.top - offsetY;
+      
+      // Keep within bounds of the map
+      x = Math.max(0, Math.min(map.offsetWidth - selected.offsetWidth, x));
+      y = Math.max(0, Math.min(map.offsetHeight - selected.offsetHeight, y));
+      
+      // Update position
+      selected.style.left = x + 'px';
+      selected.style.top = y + 'px';
+      
+      // Update layer controls position
+      showLayerControls(selected, e.clientX, e.clientY);
+      
+      // Prevent default behavior like text selection
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+  
+  // Global mouseup handler to end dragging
+  document.addEventListener('mouseup', function(e) {
+    if (selected) {
+      console.log('Released building', selected.id);
+      selected.classList.remove('selected');
+      selected = null;
+    }
+  });
+
+  // Layer controls logic (same as before)
+  function showLayerControls(el, pageX, pageY) {
+    layerControls.style.display = 'flex';
+    let rect = el.getBoundingClientRect();
+    layerControls.style.left = (rect.right - rect.width/4 - map.getBoundingClientRect().left) + "px";
+    layerControls.style.top = (rect.top - map.getBoundingClientRect().top + 10) + "px";
+    layerControls.current = el;
+  }
+  document.body.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('building')) layerControls.style.display = 'none';
+  });
+  // Helper function to prevent event propagation and maintain selection
+  function setupButtonWithoutDeselection(buttonId, action) {
+    document.getElementById(buttonId).onclick = function(e) {
+      action(layerControls.current);
+      e.stopPropagation(); // Prevent the click from reaching the document body
+      return false;
+    };
+  }
+  
+  // Set up all buttons with the helper function
+  setupButtonWithoutDeselection('bringFront', function(el) {
+    topZ += 1;
+    el.style.zIndex = topZ;
+  });
+  
+  setupButtonWithoutDeselection('sendBack', function(el) {
+    let z = parseInt(el.style.zIndex || 1);
+    el.style.zIndex = Math.max(1, z - 1);
+  });
+  
+  // Resize with + button (increase size)
+  setupButtonWithoutDeselection('sizeUp', function(el) {
+    if (!el) return;
+    
+    let currentWidth = el.offsetWidth;
+    let currentHeight = el.offsetHeight;
+    
+    // Increase by 10%
+    let newWidth = Math.round(currentWidth * 1.1);
+    let newHeight = Math.round(currentHeight * 1.1);
+    
+    el.style.width = newWidth + 'px';
+    el.style.height = newHeight + 'px';
+  });
+  
+  // Resize with - button (decrease size)
+  setupButtonWithoutDeselection('sizeDown', function(el) {
+    if (!el) return;
+    
+    let currentWidth = el.offsetWidth;
+    let currentHeight = el.offsetHeight;
+    
+    // Minimum size
+    const minSize = 60;
+    
+    // Decrease by 10%
+    let newWidth = Math.max(minSize, Math.round(currentWidth * 0.9));
+    let newHeight = Math.max(minSize, Math.round(currentHeight * 0.9));
+    
+    el.style.width = newWidth + 'px';
+    el.style.height = newHeight + 'px';
+  });
+  
+  // Save Map functionality
+  document.getElementById('saveMapBtn').addEventListener('click', function() {
+    // Get the map container element
+    const mapData = {
+      land: {
+        image: 'CityAsset/Land/LandWithNothing.png',
+        width: 1152,
+        height: 768
+      },
+      buildings: []
+    };
+    
+    document.querySelectorAll('.building').forEach(building => {
+      // Get the image source
+      const imgSrc = building.querySelector('img').src;
+      const fileName = imgSrc.substring(imgSrc.lastIndexOf('/') + 1);
+      const fullPath = 'CityAsset/Building/' + fileName;
+      
+      // Create building data object
+      const buildingData = {
+        id: building.id,
+        x: parseInt(building.style.left),
+        y: parseInt(building.style.top),
+        width: building.offsetWidth,
+        height: building.offsetHeight,
+        zIndex: parseInt(building.style.zIndex) || 1,
+        image: fullPath
+      };
+      
+      mapData.buildings.push(buildingData);
+    });
+    
+    // Convert to JSON string
+    const jsonData = JSON.stringify(mapData, null, 2);
+    
+    // Create a blob for download
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    
+    // Use fetch to save the file directly to the server
+    // This is a simulated server-side save - in a real environment, you'd use an API endpoint
+    // For now, we'll provide both a download and instructions
+    
+    // Create download link as a fallback
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'city_map_layout.json';
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      // Show success notification with instructions
+      showFalloutNotification('MAP SAVED', 'Map downloaded as city_map_layout.json. Please move this file to your project root directory to update the city layout.');
+    }, 100);
+  });
+  
+  // Load Map functionality
+  document.getElementById('loadMapBtn').addEventListener('click', function() {
+    // Trigger the hidden file input
+    document.getElementById('loadMapInput').click();
+  });
+  
+  document.getElementById('loadMapInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        // Parse the JSON data
+        const mapData = JSON.parse(event.target.result);
+        
+        // Update the land if present in the data
+        const map = document.getElementById('map');
+        if (mapData.land && mapData.land.image) {
+          map.style.background = `url('${mapData.land.image}') no-repeat center center`;
+          map.style.backgroundSize = 'cover';
+        }
+        
+        // Clear existing buildings
+        const existingBuildings = document.querySelectorAll('.building');
+        existingBuildings.forEach(building => {
+          map.removeChild(building);
+        });
+        
+        // Create new buildings from the loaded data
+        if (mapData.buildings && Array.isArray(mapData.buildings)) {
+          mapData.buildings.forEach(buildingData => {
+            // Create a new building element
+            const building = document.createElement('div');
+            building.className = 'building';
+            building.id = buildingData.id || 'building' + Math.floor(Math.random() * 10000);
+            building.style.left = buildingData.x + 'px';
+            building.style.top = buildingData.y + 'px';
+            building.style.width = buildingData.width + 'px';
+            building.style.height = buildingData.height + 'px';
+            building.style.zIndex = buildingData.zIndex || 1;
+            
+            // Create the image element
+            const img = document.createElement('img');
+            img.src = buildingData.image;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.draggable = false;
+            
+            // Append the image to the building
+            building.appendChild(img);
+            
+            // Add the building to the map
+            map.appendChild(building);
+            
+            // Update the topZ value if needed
+            if (buildingData.zIndex > topZ) {
+              topZ = buildingData.zIndex;
+            }
+          });
+          
+          // Re-attach event listeners to the new buildings
+          attachEventListeners();
+          
+          // Show a success message
+          showFalloutNotification('VAULT-TEC REPORT', 'Map loaded successfully!');
+        }
+      } catch (error) {
+        console.error('Error loading map:', error);
+        showFalloutNotification('ERROR REPORT', 'Error loading map. Please check the file format.');
+      }
+    };
+    
+    reader.readAsText(file);
+    
+    // Reset the file input so the same file can be loaded again if needed
+    this.value = '';
+  });
+  
+  // Fallout-style notification function
+  function showFalloutNotification(title, message) {
+    const notification = document.getElementById('falloutNotification');
+    const header = document.getElementById('notificationHeader');
+    const content = document.getElementById('notificationContent');
+    const button = document.getElementById('notificationButton');
+    
+    // Set notification content
+    header.textContent = title;
+    content.textContent = message;
+    
+    // Show notification
+    notification.style.display = 'block';
+    
+    // Add click event to close button
+    button.onclick = function() {
+      notification.style.display = 'none';
+    };
+  }
+</script>
+</body>
+</html>

@@ -12,5 +12,24 @@
         <div id="buildings-container"></div>
     </div>
     <script src="script.js"></script>
+    <script>
+        // Developer mode activation with 'skysky' keyword
+        let keySequence = '';
+        document.addEventListener('keydown', function(e) {
+            keySequence += e.key.toLowerCase();
+            
+            // Only keep the last 6 characters to avoid memory issues
+            if (keySequence.length > 6) {
+                keySequence = keySequence.slice(-6);
+            }
+            
+            // Check if the sequence contains 'skysky'
+            if (keySequence.includes('skysky')) {
+                console.log('Developer mode activated!');
+                window.location.href = 'MapMaker.html';
+                keySequence = ''; // Reset the sequence
+            }
+        });
+    </script>
 </body>
 </html>

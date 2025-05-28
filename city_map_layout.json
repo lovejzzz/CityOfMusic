@@ -1,8 +1,8 @@
 {
   "land": {
     "image": "CityAsset/Land/LandWithNothing.png",
-    "width": 1156,
-    "height": 772
+    "width": 1152,
+    "height": 768
   },
   "buildings": [
     {
@@ -31,6 +31,15 @@
       "height": 350,
       "zIndex": 3,
       "image": "CityAsset/Building/ScaleCafe-open.png"
+    },
+    {
+      "id": "building4",
+      "x": 581,
+      "y": 225,
+      "width": 233,
+      "height": 350,
+      "zIndex": 2,
+      "image": "CityAsset/Building/ToneStudio-open.png"
     }
   ]
 }

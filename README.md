@@ -13,6 +13,13 @@ This project is actively under development. We have successfully completed the *
 ### ✅ Completed Features
 
 - **Interactive City Map**: Pixel-perfect hover detection with beautiful lighting effects
+- **MapMaker Tool**: Developer tool for customizing the city layout
+  - Access by typing 'skysky' on the main page
+  - Drag and drop buildings to reposition them
+  - Adjust building layers (z-index)
+  - Resize buildings
+  - Auto-detects new buildings added to the project
+  - Save/load city layouts
 - **Card Collection Game (Groove Lounge)**: Complete loot box system with:
   - Multiple box types (Conqueror, Maestro, Virtuoso)
   - 200+ unique collectible cards
@@ -98,6 +105,17 @@ TheCity/
 - Reward learning progress with collectible achievements
 - Encourage exploration of different musical concepts
 - Build long-term engagement through collection mechanics
+
+## 📝 Update Log
+
+### May 28, 2025
+- Added MapMaker tool for easy city layout customization
+  - Access by typing 'skysky' on the main page
+  - Drag and drop interface for building placement
+  - Automatically detects and includes new buildings
+- Improved building interaction system
+- Fixed various UI and positioning issues
+- Updated documentation
 
 ## 📝 License
 
